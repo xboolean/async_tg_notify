@@ -78,6 +78,6 @@ def run(updater):
 if __name__ == '__main__':
     logger.info("Starting bot")
     updater = Updater(TOKEN)
-    updater.dispatcher.add_handler(CommandHandler("start", start_handler, run_async=False))
-    updater.dispatcher.add_handler(CommandHandler("signals", get_signals, run_async=False))
+    updater.dispatcher.add_handler(CommandHandler("start", start_handler, run_async=True))
+    updater.dispatcher.add_handler(CommandHandler("signals", get_signals, run_async=True))
     run(updater)
