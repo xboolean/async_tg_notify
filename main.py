@@ -68,16 +68,6 @@ async def get_signals(update: Update, context: CallbackContext.DEFAULT_TYPE):
     for value in compare.values():
         await context.bot.send_message(chat_id=update.effective_chat.id, text='{}'.format(value))
 
-# def run(updater):
-#     PORT = os.environ.get('PORT', 8443)
-#     HEROKU_APP_NAME = os.environ.get('HEROKU_APP_NAME')
-#     updater.start_webhook(listen="0.0.0.0",
-#                               port=PORT,
-#                               url_path=TOKEN,
-#                               webhook_url="https://{}.herokuapp.com/{}".format(HEROKU_APP_NAME, TOKEN)
-#                               )
-
-
 if __name__ == '__main__':
     logger.info("Starting bot")
     application = ApplicationBuilder().token(TOKEN).build()
