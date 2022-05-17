@@ -13,6 +13,8 @@ logging.basicConfig(
 
 logger = logging.getLogger()
 
+TOKEN = os.environ.get("TOKEN")
+
 urls = [
     "https://api.binance.us/api/v3/ticker/price?symbol=BTCUSDT",
     "https://api.binance.us/api/v3/ticker/price?symbol=ETHBTC",
@@ -22,9 +24,6 @@ urls = [
 
 
 logger = logging.getLogger()
-
-TOKEN = '5382138254:AAE_1hqTtfqbqpK8jTE9aBpsa5CgmHb5d_8'
-URL = "https://api.telegram.org/bot5382138254:AAE_1hqTtfqbqpK8jTE9aBpsa5CgmHb5d_8"
 
 with open('config.json', 'r') as f:
     data = json.load(f)
