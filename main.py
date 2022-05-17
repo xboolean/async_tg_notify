@@ -3,7 +3,8 @@ import logging
 import json
 import asyncio
 from aiohttp import ClientSession
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext
 from flask import Flask, request, jsonify
 
 logging.basicConfig(
@@ -14,6 +15,7 @@ logging.basicConfig(
 logger = logging.getLogger()
 
 TOKEN = os.environ.get("TOKEN")
+PORT = os.environ.get('PORT', 8443)
 
 urls = [
     "https://api.binance.us/api/v3/ticker/price?symbol=BTCUSDT",
@@ -52,10 +54,10 @@ def price_comparison(price, config):
                 coins_dict_comparison_done[coin['symbol']] = 'Alert! ETH/BTC ratio is below {} threshold!'.format(coin_property['price'])
     return coins_dict_comparison_done
 
-async def start_handler(update: Updater, context: CallbackContext):
-    update.message.reply_text("Hello! Use /signals command to get a crypto alerts!")
+async def start(update: Update, context: CallbackContext.DEFAULT_TYPE):
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Hello! Use /signals command to get a crypto alerts!")
 
-async def get_signals(update: Updater, context: CallbackContext):
+async def get_signals(update: Update, context: CallbackContext.DEFAULT_TYPE):
     async with ClientSession() as session:
             tasks = []
             for url in urls:
@@ -64,20 +66,28 @@ async def get_signals(update: Updater, context: CallbackContext):
             prices = await asyncio.gather(*tasks)
             compare = price_comparison(prices, data)
     for value in compare.values():
-        update.message.reply_text('{}'.format(value))
+        await context.bot.send_message(chat_id=update.effective_chat.id, text='{}'.format(value))
 
-def run(updater):
-    PORT = os.environ.get('PORT', 8443)
-    HEROKU_APP_NAME = os.environ.get('HEROKU_APP_NAME')
-    updater.start_webhook(listen="0.0.0.0",
-                              port=PORT,
-                              url_path=TOKEN,
-                              webhook_url="https://{}.herokuapp.com/{}".format(HEROKU_APP_NAME, TOKEN)
-                              )
+# def run(updater):
+#     PORT = os.environ.get('PORT', 8443)
+#     HEROKU_APP_NAME = os.environ.get('HEROKU_APP_NAME')
+#     updater.start_webhook(listen="0.0.0.0",
+#                               port=PORT,
+#                               url_path=TOKEN,
+#                               webhook_url="https://{}.herokuapp.com/{}".format(HEROKU_APP_NAME, TOKEN)
+#                               )
+
 
 if __name__ == '__main__':
     logger.info("Starting bot")
-    updater = Updater(TOKEN)
-    updater.dispatcher.add_handler(CommandHandler("start", start_handler, run_async=True))
-    updater.dispatcher.add_handler(CommandHandler("signals", get_signals, run_async=True))
-    run(updater)
+    application = ApplicationBuilder().token(TOKEN).build()
+    start_handler = CommandHandler('start', start, block=False)
+    signal_handler = CommandHandler('signals', get_signals, block=False)
+    application.add_handler(start_handler)
+    application.add_handler(signal_handler)
+    application.run_webhook(
+        listen="0.0.0.0",
+        port=PORT,
+        url_path=TOKEN,
+        webhook_url="https://async-crypto-craud.herokuapp.com/" + TOKEN
+)
